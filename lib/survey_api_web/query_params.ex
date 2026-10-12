@@ -36,23 +36,20 @@ defmodule SurveyApiWeb.QueryParams do
   defp parse(_raw, _min, _max), do: {:error, "must be an integer"}
 
   @doc """
-  Parses `limit` and `offset` plus any `extra` `{name, min, max}` integers (without default).
-  Returns `{:ok, %{limit:, offset:, extra_name => value | nil}}` or `{:error, {:query, errors}}`.
+  Parses `limit` and `offset` plus any `extra` integers given as `name: {min, max}` (no default, so absent
+  means `nil`). Returns `{:ok, %{limit:, offset:, name => value | nil}}` or `{:error, {:query, errors}}`.
   """
   def paging(params, extra \\ []) do
     fields =
       [
-        {"limit", int(params, "limit", 1, @max_limit, @default_limit)},
-        {"offset", int(params, "offset", 0, Limits.int32_max(), 0)}
-      ] ++ for({name, min, max} <- extra, do: {name, int(params, name, min, max)})
+        limit: int(params, "limit", 1, @max_limit, @default_limit),
+        offset: int(params, "offset", 0, Limits.int32_max(), 0)
+      ] ++
+        for({name, {min, max}} <- extra, do: {name, int(params, Atom.to_string(name), min, max)})
 
-    case for({name, {:error, message}} <- fields, into: %{}, do: {name, message}) do
-      errors when map_size(errors) > 0 ->
-        {:error, {:query, errors}}
-
-      _ ->
-        {:ok,
-         Map.new(fields, fn {name, {:ok, value}} -> {String.to_existing_atom(name), value} end)}
+    case for({name, {:error, message}} <- fields, into: %{}, do: {Atom.to_string(name), message}) do
+      errors when map_size(errors) > 0 -> {:error, {:query, errors}}
+      _ -> {:ok, Map.new(fields, fn {name, {:ok, value}} -> {name, value} end)}
     end
   end
 
@@ -66,4 +63,8 @@ defmodule SurveyApiWeb.QueryParams do
       {:error, _message} -> :error
     end
   end
+
+  @doc "The fallback-controller error for an id that doesn't exist (or can't, see `path_id/2`)."
+  def not_found(kind, raw_id),
+    do: {:error, {:not_found, "#{kind} #{String.slice(raw_id, 0, 40)} not found"}}
 end

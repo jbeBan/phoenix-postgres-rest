@@ -28,3 +28,8 @@ survey_api-*.tar
 
 # Local Postgres cluster (see README)
 /.pgdata/
+
+# Editor/tooling leftovers (these were in the original .gitignore)
+*.beam
+/config/*.secret.exs
+.elixir_ls/

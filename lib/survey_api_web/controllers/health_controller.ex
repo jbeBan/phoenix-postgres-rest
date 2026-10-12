@@ -10,7 +10,7 @@ defmodule SurveyApiWeb.HealthController do
   def readiness(conn, _params) do
     case SurveyApi.Repo.query("SELECT 1", [], timeout: 3_000) do
       {:ok, _} -> json(conn, %{status: "ok"})
-      {:error, _} -> Problem.send(conn, 503, nil, detail: "database unavailable")
+      {:error, _} -> Problem.respond(conn, 503, nil, detail: "database unavailable")
     end
   end
 end

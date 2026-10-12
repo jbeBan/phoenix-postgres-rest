@@ -45,8 +45,6 @@ jobs:
       - run: mix test
       - name: Migrations roll back and forward again
         run: mix ecto.rollback --all && mix ecto.migrate
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/survey_api_test
 
   docker:
     runs-on: ubuntu-latest

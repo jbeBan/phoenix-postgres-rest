@@ -10,7 +10,7 @@ defmodule SurveyApiWeb.SurveyController do
   plug SurveyApiWeb.Plugs.JsonBody when action == :create
 
   def create(conn, _params) do
-    with {:ok, attrs} <- validate(Surveys.validate_new(conn.assigns.json_body)),
+    with {:ok, attrs} <- Surveys.validate_new(conn.assigns.json_body),
          {:ok, survey} <- Surveys.create(attrs) do
       conn
       |> put_status(:created)
@@ -27,18 +27,11 @@ defmodule SurveyApiWeb.SurveyController do
 
   # ids beyond the column's range can't exist, so they are a 404 rather than a Postgres error.
   def show(conn, %{"id" => raw_id}) do
-    with {:ok, id} <- id(raw_id),
+    with {:ok, id} <- QueryParams.path_id(raw_id, Limits.int32_max()),
          %{} = survey <- Surveys.get(id) do
       render(conn, :show, survey: survey)
     else
-      _ -> {:error, {:not_found, "survey #{inspect_id(raw_id)} not found"}}
+      _ -> QueryParams.not_found("survey", raw_id)
     end
   end
-
-  defp id(raw), do: QueryParams.path_id(raw, Limits.int32_max())
-
-  defp validate({:ok, attrs}), do: {:ok, attrs}
-  defp validate({:error, errors}), do: {:error, {:validation, errors}}
-
-  defp inspect_id(raw), do: String.slice(raw, 0, 40)
 end

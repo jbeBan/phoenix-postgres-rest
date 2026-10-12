@@ -12,7 +12,7 @@ defmodule SurveyApiWeb.Problem do
   end
 
   @doc "Sends the problem as `application/problem+json`."
-  def send(conn, status, title \\ nil, extra \\ %{}) do
+  def respond(conn, status, title \\ nil, extra \\ %{}) do
     conn
     |> put_resp_content_type("application/problem+json")
     |> send_resp(status, Jason.encode_to_iodata!(body(status, title, extra)))

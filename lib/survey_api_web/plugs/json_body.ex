@@ -41,7 +41,7 @@ defmodule SurveyApiWeb.Plugs.JsonBody do
     end
   end
 
-  defp reject(conn, status, extra), do: conn |> Problem.send(status, nil, extra) |> halt()
+  defp reject(conn, status, extra), do: conn |> Problem.respond(status, nil, extra) |> halt()
 
   defp json?(conn) do
     with [value | _] <- get_req_header(conn, "content-type"),

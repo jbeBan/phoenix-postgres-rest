@@ -33,7 +33,7 @@ COPY --from=build --chown=app:app /src/_build/prod/rel/survey_api ./
 USER app
 EXPOSE 4000
 HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \
-    CMD ["curl", "-fsS", "http://127.0.0.1:4000/healthz"]
+    CMD curl -fsS "http://127.0.0.1:${PORT}/healthz"
 # DATABASE_URL and SECRET_KEY_BASE are required: the release exits at startup without them. Migrations are
 # not run on start: run `bin/migrate` first (see the migrate service in compose.yaml), so several replicas
 # never race to migrate.

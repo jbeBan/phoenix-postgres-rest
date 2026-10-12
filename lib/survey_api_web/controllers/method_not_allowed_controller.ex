@@ -8,6 +8,6 @@ defmodule SurveyApiWeb.MethodNotAllowedController do
   def not_allowed(conn, _params) do
     conn
     |> put_resp_header("allow", conn.private.allow)
-    |> Problem.send(405, nil, detail: "The method is not allowed for the requested URL.")
+    |> Problem.respond(405, nil, detail: "The method is not allowed for the requested URL.")
   end
 end

@@ -39,20 +39,14 @@ defmodule Mix.Tasks.SurveyApi.Explain do
       )
     end
 
-    {:ok, repo} =
-      Repo.start_link(
-        name: nil,
-        url: url,
-        pool: DBConnection.ConnectionPool,
-        pool_size: 2,
-        log: false
-      )
-
-    Repo.put_dynamic_repo(repo)
+    # Point the repo at the explain database for this run (Ecto.Migrator reads the repo's own config).
+    repo_config = Application.get_env(:survey_api, Repo, [])
+    Application.put_env(:survey_api, Repo, Keyword.put(repo_config, :url, url))
+    {:ok, _} = Repo.start_link(pool: DBConnection.ConnectionPool, pool_size: 2, log: false)
 
     Repo.query!("DROP SCHEMA public CASCADE")
     Repo.query!("CREATE SCHEMA public")
-    Ecto.Migrator.run(Repo, :up, all: true, dynamic_repo: repo, log: false)
+    Ecto.Migrator.run(Repo, :up, all: true, log: false)
 
     # Measure without the shipped index first.
     Repo.query!("DROP INDEX idx_responses_survey_id_id")

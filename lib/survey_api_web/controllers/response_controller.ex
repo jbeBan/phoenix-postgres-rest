@@ -10,7 +10,7 @@ defmodule SurveyApiWeb.ResponseController do
   plug SurveyApiWeb.Plugs.JsonBody when action == :create
 
   def create(conn, _params) do
-    with {:ok, attrs} <- validate(Responses.validate_new(conn.assigns.json_body)),
+    with {:ok, attrs} <- Responses.validate_new(conn.assigns.json_body),
          {:ok, response} <- Responses.create(attrs) do
       conn
       |> put_status(:created)
@@ -21,7 +21,7 @@ defmodule SurveyApiWeb.ResponseController do
 
   def index(conn, params) do
     with {:ok, %{limit: limit, offset: offset, survey_id: survey_id}} <-
-           QueryParams.paging(params, [{"survey_id", 1, Limits.int32_max()}]) do
+           QueryParams.paging(params, survey_id: {1, Limits.int32_max()}) do
       render(conn, :index,
         rows: Responses.list(survey_id, limit, offset),
         limit: limit,
@@ -35,10 +35,7 @@ defmodule SurveyApiWeb.ResponseController do
          %{} = response <- Responses.get(id) do
       render(conn, :show, response: response)
     else
-      _ -> {:error, {:not_found, "response #{String.slice(raw_id, 0, 40)} not found"}}
+      _ -> QueryParams.not_found("response", raw_id)
     end
   end
-
-  defp validate({:ok, attrs}), do: {:ok, attrs}
-  defp validate({:error, errors}), do: {:error, {:validation, errors}}
 end

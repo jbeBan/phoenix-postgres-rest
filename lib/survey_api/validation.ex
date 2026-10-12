@@ -11,13 +11,14 @@ defmodule SurveyApi.Validation do
     * `{:int, min, max}` - integer within the bounds
     * `{:optional, type}` - may be absent or null
 
-  Returns `{:ok, %{field: value}}` or `{:error, %{"field" => "message"}}`; a body that is not an object is
+  Returns `{:ok, %{field: value}}` or `{:error, {:validation, %{"field" => "message"}}}`; a body that is not an object is
   reported under `"body"`.
   """
 
   @type spec :: [{atom(), term()}]
 
-  @spec validate(term(), spec()) :: {:ok, map()} | {:error, %{optional(String.t()) => String.t()}}
+  @spec validate(term(), spec()) ::
+          {:ok, map()} | {:error, {:validation, %{optional(String.t()) => String.t()}}}
   def validate(body, spec) when is_map(body) do
     known = Map.new(spec, fn {field, _} -> {Atom.to_string(field), field} end)
 
@@ -41,11 +42,12 @@ defmodule SurveyApi.Validation do
       {:ok,
        for({field, {:ok, value}} <- results, value != :absent, into: %{}, do: {field, value})}
     else
-      {:error, errors}
+      {:error, {:validation, errors}}
     end
   end
 
-  def validate(_body, _spec), do: {:error, %{"body" => "Input should be a valid JSON object"}}
+  def validate(_body, _spec),
+    do: {:error, {:validation, %{"body" => "Input should be a valid JSON object"}}}
 
   defp check({:optional, _type}, :error), do: {:ok, :absent}
   defp check({:optional, _type}, {:ok, nil}), do: {:ok, nil}
