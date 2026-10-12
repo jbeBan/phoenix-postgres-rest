@@ -1,0 +1,14 @@
+.git
+.github
+_build
+deps
+cover
+doc
+.pgdata
+.elixir_ls
+test
+Dockerfile
+compose.yaml
+docker
+README.md
+erl_crash.dump
